@@ -15,7 +15,7 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
     api_key = NULL,
     stock_data = NULL,
 
-    # The 'initialize' method is the constructor, run when a new object is created # nolint # nolint
+    # The 'initialize' method is the constructor, run when a new object is created
     initialize = function(stock_ticker, benchmark_ticker = "QQQ", api_key) { # nolint: line_length_linter.
       self$stock_ticker <- stock_ticker
       self$benchmark_ticker <- benchmark_ticker
@@ -31,7 +31,7 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
       # Calculate daily returns
       daily_returns <- self$stock_data %>%
         arrange(date) %>%
-        mutate(returns = (adjusted_close / lag(adjusted_close)) - 1) %>%
+        mutate(returns = (close_price / lag(close_price)) - 1) %>%
         filter(!is.na(returns))
 
       # Calculate the standard deviation of daily returns
@@ -39,32 +39,32 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
 
       # Annualize it by multiplying by the square root of 252 (trading days in a year) # nolint: line_length_linter.
       annualized_volatility <- std_dev_daily * sqrt(252)
-      return(annualized_volatility) # nolint
+      return(annualized_volatility)
     },
 
     # Calculate Beta
     calculate_beta = function() {
       if (is.null(self$stock_data) ||
-          !"benchmark_close" %in% names(self$stock_data)) return(NA) # nolint: indentation_linter, line_length_linter.
+          !"benchmark_close" %in% names(self$stock_data)) return(NA)
 
       # Calculate daily returns for both stock and benchmark
       returns_data <- self$stock_data %>%
         arrange(date) %>%
         mutate(
-          stock_return = (adjusted_close / lag(adjusted_close)) - 1,
+          stock_return = (close_price / lag(close_price)) - 1,
           benchmark_return = (benchmark_close / lag(benchmark_close)) - 1
         ) %>%
         filter(!is.na(stock_return) & !is.na(benchmark_return))
 
       # Calculate covariance of stock returns with market returns
-      covariance <- cov(returns_data$stock_return, returns_data$benchmark_return) # nolint: line_length_linter.
+      covariance <- cov(returns_data$stock_return, returns_data$benchmark_return)
 
       # Calculate variance of market returns
       variance <- var(returns_data$benchmark_return)
 
       # Beta is Covariance / Variance
       beta <- covariance / variance
-      return(beta) # nolint: return_linter.
+      return(beta)
     }
   ),
 
@@ -74,15 +74,15 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
 
       # Function to get data for a single ticker
       get_daily_data <- function(ticker, api_key) {
-        url <- paste0("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=", ticker, "&outputsize=compact&apikey=", api_key) # nolint
+        url <- paste0("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=", ticker, "&outputsize=compact&apikey=", api_key)
 
         tryCatch({
           resp <- request(url) %>% req_perform()
-          if (resp_status(resp) != 200) stop("API request failed with status: ", resp_status(resp)) # nolint
+          if (resp_status(resp) != 200) stop("API request failed with status: ", resp_status(resp))
 
           json_data <- resp_body_json(resp)
 
-          if (!is.null(json_data$`Error Message`) || is.null(json_data$`Time Series (Daily)`)) { # nolint
+          if (!is.null(json_data$`Error Message`) || is.null(json_data$`Time Series (Daily)`)) {
             stop("Invalid ticker or API error. Check the ticker symbol.")
           }
 
@@ -90,7 +90,8 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
           daily_data <- imap_dfr(json_data$`Time Series (Daily)`, ~{
             tibble(
               date = ymd(.y),
-              adjusted_close = as.numeric(.x$`5. adjusted close`)
+              # Use the '4. close' field since we are not using adjusted data
+              close_price = as.numeric(.x$`4. close`)
             )
           })
 
@@ -107,8 +108,8 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
       # Join the two datasets by date
       self$stock_data <- stock_df %>%
         inner_join(benchmark_df, by = "date", suffix = c("", "_benchmark")) %>%
-        rename(benchmark_close = adjusted_close_benchmark)
+        rename(benchmark_close = close_price_benchmark)
     }
   )
 )
- # nolint
+
