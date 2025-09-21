@@ -10,17 +10,20 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
 
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-2">Stock Risk Analyzer</h1>
-        <p class="text-gray-500 text-center mb-8">Enter a NASDAQ stock ticker to calculate its key risk metrics.</p>
+    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-lg">
+        <h1 class="text-3xl font-bold text-white text-center mb-2">Stock Risk Analyzer</h1>
+        <p class="text-gray-400 text-center mb-8">Enter a NASDAQ stock ticker to calculate its key risk metrics.</p>
 
         <!-- Input Form -->
         <form id="risk-form" class="space-y-4">
             <div>
-                <label for="ticker" class="block text-sm font-medium text-gray-700">Stock Ticker (e.g., AAPL)</label>
-                <input type="text" id="ticker" value="AAPL" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm uppercase focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                 <div class="flex justify-between items-baseline">
+                    <label for="ticker" class="block text-sm font-medium text-gray-300">Stock Ticker (e.g., AAPL, MSFT)</label>
+                    <p class="text-xs italic text-gray-500">Free API limit: 25 requests per day</p>
+                </div>
+                <input type="text" id="ticker" value="AAPL" class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white uppercase focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div>
                 <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -31,23 +34,31 @@
 
         <!-- Results Section -->
         <div id="results-container" class="mt-10 hidden">
-            <h2 id="results-header" class="text-2xl font-bold text-gray-800 text-center mb-4"></h2>
-            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
-                <div class="flex justify-between items-center text-lg">
-                    <span class="text-gray-600">Annualized Volatility:</span>
-                    <span id="volatility-result" class="font-bold text-gray-900"></span>
+            <h2 id="results-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+            <div class="bg-gray-700 p-6 rounded-lg space-y-4">
+                
+                <div class="text-center pb-4 border-b border-gray-600">
+                    <p id="company-name-result" class="text-xl font-bold text-white"></p>
+                    <p class="text-lg text-gray-300">
+                        Latest Close Price: <span id="current-price-result" class="font-bold text-white"></span>
+                    </p>
                 </div>
-                 <p class="text-sm text-gray-500 -mt-2">Measures the stock's price fluctuation. Higher means more risk.</p>
+                
                 <div class="flex justify-between items-center text-lg">
-                    <span class="text-gray-600">Beta (vs. QQQ):</span>
-                    <span id="beta-result" class="font-bold text-gray-900"></span>
+                    <span class="text-gray-300">Annualized Volatility:</span>
+                    <span id="volatility-result" class="font-bold text-white"></span>
+                </div>
+                <p class="text-sm text-gray-500 -mt-2">Measures the stock's price fluctuation. Higher means more risk.</p>
+                <div class="flex justify-between items-center text-lg">
+                    <span class="text-gray-300">Beta (vs. QQQ):</span>
+                    <span id="beta-result" class="font-bold text-white"></span>
                 </div>
                 <p class="text-sm text-gray-500 -mt-2">Measures volatility relative to the market. &gt;1 is more volatile, &lt;1 is less volatile.</p>
             </div>
         </div>
         
         <!-- Error Message/Loading Area -->
-        <div id="message-container" class="mt-6 text-center text-red-600 font-medium hidden"></div>
+        <div id="message-container" class="mt-6 text-center text-red-500 font-medium hidden"></div>
 
     </div>
 
@@ -69,7 +80,7 @@
             const data = { ticker: ticker };
 
             try {
-                // The '/analyze' endpoint is created by our plumber.R script
+                // This sends the data to the '/analyze' endpoint created by our plumber.R script
                 const response = await fetch('/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -82,7 +93,10 @@
                     throw new Error(result.error || 'An unknown error occurred.');
                 }
                 
+                // Populate all the data fields with the results from the R server
                 document.getElementById('results-header').textContent = `Analysis for ${result.ticker}`;
+                document.getElementById('company-name-result').textContent = result.companyName;
+                document.getElementById('current-price-result').textContent = result.currentPrice;
                 document.getElementById('volatility-result').textContent = result.volatility;
                 document.getElementById('beta-result').textContent = result.beta;
                 resultsContainer.classList.remove('hidden');
@@ -99,3 +113,4 @@
 
 </body>
 </html>
+
