@@ -1,0 +1,84 @@
+Based on the final state of the R Stock Risk Analyzer project, here’s a clear summary of the key skills, knowledge, and financial formulas used.
+
+---
+
+## Key Technical Skills & Knowledge
+
+This project was a full journey in building a data-driven web app using R.
+
+### 1. Full-Stack R Application Development
+- **What you learned:** How to build both the backend (server logic) and frontend (user interface).
+- **Tools:**
+    - **Backend:** Used the `plumber` R package to create a web server and REST API (like Flask/FastAPI in Python).
+    - **Frontend:** Used HTML, Tailwind CSS, and JavaScript. Learned how JavaScript’s `fetch` talks to the R backend.
+
+### 2. API Integration and Troubleshooting
+- **What you learned:** How to connect to a live web API for real-time data.
+- **Tools:** Used the `httr2` R package to make HTTP requests to the Alpha Vantage API.
+- **Key lesson:** Learned to handle real-world API issues, like:
+    - API rate limits
+    - Invalid API keys
+    - Some endpoints (like `TIME_SERIES_DAILY_ADJUSTED`) require a paid plan, so you switched to a free one (`TIME_SERIES_DAILY`).
+
+### 3. Secure API Key Management
+- **What you learned:** How to keep sensitive info (like API keys) safe.
+- **Best practice:** Never put secrets directly in your code. Instead, store them in a `.Renviron` file (read by R at startup), and access them with `Sys.getenv()`. This keeps your keys out of GitHub.
+
+### 4. Robust Error Handling
+- **What you learned:** How to make your app handle errors gracefully.
+- **Tools:**
+    - **Backend (R):** Used `tryCatch()` to catch errors and send helpful messages to the frontend.
+    - **Frontend (JavaScript):** Used `try...catch` with `fetch` to show errors to the user instead of crashing.
+
+---
+
+## Key Analytical Skills & Financial Math
+
+You applied core statistics to measure financial risk.
+
+### 1. Understanding Financial Risk Metrics
+
+- **Volatility:** Measures how much a stock’s price moves up and down. High volatility = bigger swings = higher risk.
+- **Beta:** Measures how much a stock moves compared to the market. 
+    - Beta > 1: Stock is more volatile than the market.
+    - Beta < 1: Stock is less volatile than the market.
+
+### 2. The Formulas and What They Mean
+
+#### Daily Returns
+
+- **What it is:** The percent change in price from one day to the next.
+- **Formula:**  
+    Return for day t = (Price on day t / Price on day t-1) - 1  
+    Example:  
+    If yesterday’s price was $100 and today’s is $102:  
+    Return = (102 / 100) - 1 = 0.02 (or 2%)
+
+#### Annualized Volatility
+
+- **What it is:** How much the price typically fluctuates in a year.
+- **How to calculate:**
+    1. Find the standard deviation of daily returns (this is the average daily fluctuation).
+    2. Multiply by the square root of 252 (about the number of trading days in a year).
+- **Formula:**  
+    Annualized Volatility = (Standard deviation of daily returns) × √252  
+    Example:  
+    If daily standard deviation is 1.5%:  
+    Annualized Volatility = 0.015 × 15.87 ≈ 0.238 (or 23.8% per year)
+
+#### Beta
+
+- **What it is:** How much the stock’s returns move compared to the market’s returns.
+- **How to calculate:**
+    1. Calculate the covariance between the stock’s daily returns and the market’s daily returns (how much they move together).
+    2. Calculate the variance of the market’s daily returns (how much the market moves on its own).
+    3. Beta = Covariance / Variance
+- **Formula:**  
+    Beta = Covariance(Stock Returns, Market Returns) / Variance(Market Returns)  
+    Example:  
+    If covariance is 0.0008 and variance is 0.0005:  
+    Beta = 0.0008 / 0.0005 = 1.6
+
+---
+
+These concepts and formulas are the foundation of risk analysis in finance and are widely used in the industry.
