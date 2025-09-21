@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Risk Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-2">Stock Risk Analyzer</h1>
+        <p class="text-gray-500 text-center mb-8">Enter a NASDAQ stock ticker to calculate its key risk metrics.</p>
+
+        <!-- Input Form -->
+        <form id="risk-form" class="space-y-4">
+            <div>
+                <label for="ticker" class="block text-sm font-medium text-gray-700">Stock Ticker (e.g., AAPL)</label>
+                <input type="text" id="ticker" value="AAPL" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm uppercase focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <button type="submit" id="submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Analyze Stock Risk
+                </button>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div id="results-container" class="mt-10 hidden">
+            <h2 id="results-header" class="text-2xl font-bold text-gray-800 text-center mb-4"></h2>
+            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+                <div class="flex justify-between items-center text-lg">
+                    <span class="text-gray-600">Annualized Volatility:</span>
+                    <span id="volatility-result" class="font-bold text-gray-900"></span>
+                </div>
+                 <p class="text-sm text-gray-500 -mt-2">Measures the stock's price fluctuation. Higher means more risk.</p>
+                <div class="flex justify-between items-center text-lg">
+                    <span class="text-gray-600">Beta (vs. QQQ):</span>
+                    <span id="beta-result" class="font-bold text-gray-900"></span>
+                </div>
+                <p class="text-sm text-gray-500 -mt-2">Measures volatility relative to the market. &gt;1 is more volatile, &lt;1 is less volatile.</p>
+            </div>
+        </div>
+        
+        <!-- Error Message/Loading Area -->
+        <div id="message-container" class="mt-6 text-center text-red-600 font-medium hidden"></div>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('risk-form');
+        const resultsContainer = document.getElementById('results-container');
+        const messageContainer = document.getElementById('message-container');
+        const submitButton = document.getElementById('submit-button');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); 
+            
+            resultsContainer.classList.add('hidden');
+            messageContainer.classList.add('hidden');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Analyzing...';
+            
+            const ticker = document.getElementById('ticker').value;
+            const data = { ticker: ticker };
+
+            try {
+                // The '/analyze' endpoint is created by our plumber.R script
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+                
+                document.getElementById('results-header').textContent = `Analysis for ${result.ticker}`;
+                document.getElementById('volatility-result').textContent = result.volatility;
+                document.getElementById('beta-result').textContent = result.beta;
+                resultsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                messageContainer.textContent = `Error: ${error.message}`;
+                messageContainer.classList.remove('hidden');
+            } finally {
+                 submitButton.disabled = false;
+                 submitButton.textContent = 'Analyze Stock Risk';
+            }
+        });
+    </script>
+
+</body>
+</html>
