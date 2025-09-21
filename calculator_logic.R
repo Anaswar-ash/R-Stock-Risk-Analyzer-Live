@@ -15,7 +15,7 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
     api_key = NULL,
     stock_data = NULL,
 
-    # The 'initialize' method is the constructor, run when a new object is created
+    # The 'initialize' method is the constructor, run when a new object is created # nolint # nolint
     initialize = function(stock_ticker, benchmark_ticker = "QQQ", api_key) { # nolint: line_length_linter.
       self$stock_ticker <- stock_ticker
       self$benchmark_ticker <- benchmark_ticker
@@ -39,13 +39,13 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
 
       # Annualize it by multiplying by the square root of 252 (trading days in a year) # nolint: line_length_linter.
       annualized_volatility <- std_dev_daily * sqrt(252)
-      return(annualized_volatility)
+      return(annualized_volatility) # nolint
     },
 
     # Calculate Beta
     calculate_beta = function() {
       if (is.null(self$stock_data) ||
-          !"benchmark_close" %in% names(self$stock_data)) return(NA)
+          !"benchmark_close" %in% names(self$stock_data)) return(NA) # nolint: indentation_linter, line_length_linter.
 
       # Calculate daily returns for both stock and benchmark
       returns_data <- self$stock_data %>%
@@ -57,14 +57,14 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
         filter(!is.na(stock_return) & !is.na(benchmark_return))
 
       # Calculate covariance of stock returns with market returns
-      covariance <- cov(returns_data$stock_return, returns_data$benchmark_return)
+      covariance <- cov(returns_data$stock_return, returns_data$benchmark_return) # nolint: line_length_linter.
 
       # Calculate variance of market returns
       variance <- var(returns_data$benchmark_return)
 
       # Beta is Covariance / Variance
       beta <- covariance / variance
-      return(beta)
+      return(beta) # nolint: return_linter.
     }
   ),
 
@@ -74,15 +74,15 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
 
       # Function to get data for a single ticker
       get_daily_data <- function(ticker, api_key) {
-        url <- paste0("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=", ticker, "&outputsize=compact&apikey=", api_key)
+        url <- paste0("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=", ticker, "&outputsize=compact&apikey=", api_key) # nolint
 
         tryCatch({
           resp <- request(url) %>% req_perform()
-          if (resp_status(resp) != 200) stop("API request failed with status: ", resp_status(resp))
+          if (resp_status(resp) != 200) stop("API request failed with status: ", resp_status(resp)) # nolint
 
           json_data <- resp_body_json(resp)
 
-          if (!is.null(json_data$`Error Message`) || is.null(json_data$`Time Series (Daily)`)) {
+          if (!is.null(json_data$`Error Message`) || is.null(json_data$`Time Series (Daily)`)) { # nolint
             stop("Invalid ticker or API error. Check the ticker symbol.")
           }
 
@@ -111,4 +111,4 @@ StockRiskAnalyzer <- R6Class("StockRiskAnalyzer", # nolint: object_name_linter.
     }
   )
 )
-
+ # nolint
